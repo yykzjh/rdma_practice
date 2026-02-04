@@ -40,5 +40,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Programs (one executable per .cpp file)
 add_executable(ibv_device_list device_list.cpp)
+add_executable(ibv_devinfo devinfo.cpp)
 target_link_libraries(ibv_device_list ${IBVERBS_LIBRARIES})
-
+target_link_libraries(ibv_devinfo ${IBVERBS_LIBRARIES})
