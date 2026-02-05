@@ -35,13 +35,14 @@ if(NOT IBVERBS_FOUND)
   endif()
 endif()
 
-# Provide a minimal config.h for upstream examples that include <config.h>.
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-
 # Library: pingpong helpers
-add_library(ibv_pingpong pingpong.cpp include/pingpong.h)
+add_library(ibv_pingpong pingpong.cpp include/pingpong.hpp)
 target_include_directories(ibv_pingpong PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(ibv_pingpong PUBLIC ${IBVERBS_LIBRARIES})
+
+# Library: utils
+add_library(ibv_utils utils.cpp include/utils.hpp)
+target_include_directories(ibv_utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Programs (one executable per .cpp file)
 add_executable(ibv_device_list device_list.cpp)

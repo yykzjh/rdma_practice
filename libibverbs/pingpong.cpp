@@ -30,7 +30,7 @@
  * SOFTWARE.
  */
 
-#include "include/pingpong.h"
+#include "include/pingpong.hpp"
 #include <endian.h>
 #include <iostream>
 #include <string>
