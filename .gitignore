@@ -5,6 +5,7 @@ out/
 # IDEs
 .vscode/
 .idea/
+.cache/
 
 
 CMakeLists.txt.user

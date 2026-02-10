@@ -46,6 +46,8 @@ target_include_directories(ibv_utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include
 
 # Programs (one executable per .cpp file)
 add_executable(ibv_device_list device_list.cpp)
-add_executable(ibv_devinfo devinfo.cpp)
 target_link_libraries(ibv_device_list ${IBVERBS_LIBRARIES})
+add_executable(ibv_devinfo devinfo.cpp)
 target_link_libraries(ibv_devinfo ${IBVERBS_LIBRARIES})
+add_executable(ibv_rc_pingpong rc_pingpong.cpp)
+target_link_libraries(ibv_rc_pingpong ${IBVERBS_LIBRARIES} ibv_utils ibv_pingpong)
