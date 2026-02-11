@@ -768,9 +768,9 @@ static std::shared_ptr<struct pingpong_dest> pp_server_exch_dest(struct pingpong
 	    << wgid;
 	std::string send_msg = oss.str();
 	// Send the message to the client
-	if (write_all(connfd, send_msg.c_str(), send_msg.size()) !=
+	if (rdma_practice::write_all(connfd, send_msg.c_str(), send_msg.size()) !=
 		    static_cast<ssize_t>(send_msg.size()) ||
-	    read_all(connfd, msg.data(), sizeof("done")) != sizeof("done")) {
+	    rdma_practice::read_all(connfd, msg.data(), sizeof("done")) != sizeof("done")) {
 		std::cerr << "Failed to read/write remote address" << std::endl;
 		close(connfd);
 		return nullptr;
@@ -867,7 +867,7 @@ int main(int argc, char **argv)
 	struct ts_params ts;
 	std::string server_name = "";
 	// Initialize the random number generator
-	std::mt19937 rng = make_rng();
+	std::mt19937 rng = rdma_practice::make_rng();
 
 	// Parse the command line arguments
 	while (true) {
