@@ -226,10 +226,9 @@ static struct pingpong_context *init_pp_ctx(struct ibv_device *ib_dev, int size,
 		// Check if the device supports ODP
 		if (use_odp) {
 			if (!(dev_attr_ex.odp_caps.general_caps & IBV_ODP_SUPPORT) ||
-			    (dev_attr_ex.odp_caps.per_transport_caps.rc_odp_caps & rc_caps_mask) != rc_caps_mask) {
-				std::cerr
-					<< "The device isn't ODP capable or doesn't support RC send and receive with ODP"
-					<< std::endl;
+				(dev_attr_ex.odp_caps.per_transport_caps.rc_odp_caps & rc_caps_mask) != rc_caps_mask) {
+				std::cerr << "The device isn't ODP capable or doesn't support RC send and receive with ODP"
+						  << std::endl;
 				goto clean_pd;
 			}
 			if (implicit_odp && !(dev_attr_ex.odp_caps.general_caps & IBV_ODP_SUPPORT_IMPLICIT)) {
@@ -275,7 +274,7 @@ static struct pingpong_context *init_pp_ctx(struct ibv_device *ib_dev, int size,
 		ctx->mr = ibv_reg_mr(ctx->pd, NULL, SIZE_MAX, access_flags);
 	} else {
 		ctx->mr = use_dm ? ibv_reg_dm_mr(ctx->pd, ctx->dm, 0, size, access_flags) :
-					 ibv_reg_mr(ctx->pd, ctx->buf, size, access_flags);
+							 ibv_reg_mr(ctx->pd, ctx->buf, size, access_flags);
 	}
 	if (!ctx->mr) {
 		std::cerr << "Couldn't register MR" << std::endl;
@@ -290,8 +289,8 @@ static struct pingpong_context *init_pp_ctx(struct ibv_device *ib_dev, int size,
 		sg_list.addr = reinterpret_cast<uint64_t>(ctx->buf);
 		sg_list.length = size;
 		// Attempt to prefetch the MR
-		int ret = ibv_advise_mr(ctx->pd, IBV_ADVISE_MR_ADVICE_PREFETCH_WRITE, IB_UVERBS_ADVISE_MR_FLAG_FLUSH,
-					&sg_list, 1);
+		int ret =
+			ibv_advise_mr(ctx->pd, IBV_ADVISE_MR_ADVICE_PREFETCH_WRITE, IB_UVERBS_ADVISE_MR_FLAG_FLUSH, &sg_list, 1);
 		if (ret) {
 			std::cerr << "Couldn't prefetch MR(" << ret << "). Continue anyway" << std::endl;
 		}
@@ -393,8 +392,7 @@ static struct pingpong_context *init_pp_ctx(struct ibv_device *ib_dev, int size,
 		qp_attr.pkey_index = 0;
 		qp_attr.port_num = static_cast<uint8_t>(port);
 		// Modify the QP to INIT state
-		if (ibv_modify_qp(ctx->qp, &qp_attr,
-				  IBV_QP_STATE | IBV_QP_PKEY_INDEX | IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
+		if (ibv_modify_qp(ctx->qp, &qp_attr, IBV_QP_STATE | IBV_QP_PKEY_INDEX | IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
 			std::cerr << "Failed to modify QP to INIT state" << std::endl;
 			goto clean_qp;
 		}
@@ -491,8 +489,8 @@ static int post_recv_wr(struct pingpong_context *ctx, int n)
 {
 	// Initialize the SGE list
 	struct ibv_sge sg_list = { .addr = use_dm ? 0 : reinterpret_cast<uint64_t>(ctx->buf),
-				   .length = static_cast<uint32_t>(ctx->size),
-				   .lkey = ctx->mr->lkey };
+							   .length = static_cast<uint32_t>(ctx->size),
+							   .lkey = ctx->mr->lkey };
 	// Initialize the receive work request
 	struct ibv_recv_wr recv_wr {
 	};
@@ -539,7 +537,7 @@ static int post_send_wr(struct pingpong_context *ctx)
 }
 
 static std::shared_ptr<struct pingpong_dest> pp_client_exch_dest(const std::string &server_name, int port,
-								 const struct pingpong_dest *my_dest)
+																 const struct pingpong_dest *my_dest)
 {
 	// Convert the port to a string
 	std::string service;
@@ -586,8 +584,7 @@ static std::shared_ptr<struct pingpong_dest> pp_client_exch_dest(const std::stri
 	gid_to_wire_gid(&my_dest->gid, wgid);
 	std::ostringstream oss;
 	oss << std::hex << std::nouppercase << std::setfill('0') << std::setw(4) << (my_dest->lid & 0xffff) << ':'
-	    << std::setw(6) << (my_dest->qpn & 0xffffff) << ':' << std::setw(6) << (my_dest->psn & 0xffffff) << ':'
-	    << wgid;
+		<< std::setw(6) << (my_dest->qpn & 0xffffff) << ':' << std::setw(6) << (my_dest->psn & 0xffffff) << ':' << wgid;
 	std::string msg = oss.str();
 
 	// Send the message to the server
@@ -599,7 +596,7 @@ static std::shared_ptr<struct pingpong_dest> pp_client_exch_dest(const std::stri
 
 	// Receive the message from the server
 	if (rdma_practice::read_all(sockfd, msg.data(), msg.size()) != static_cast<ssize_t>(msg.size()) ||
-	    rdma_practice::write_all(sockfd, "done", sizeof("done")) != sizeof("done")) {
+		rdma_practice::write_all(sockfd, "done", sizeof("done")) != sizeof("done")) {
 		std::cerr << "Failed to read/write remote address" << std::endl;
 		close(sockfd);
 		return nullptr;
@@ -620,7 +617,7 @@ static std::shared_ptr<struct pingpong_dest> pp_client_exch_dest(const std::stri
 }
 
 static int pp_connect_ctx(struct pingpong_context *ctx, int ib_port, uint32_t my_psn, enum ibv_mtu mtu, int sl,
-			  const std::shared_ptr<struct pingpong_dest> &remote_dest, int sgid_idx)
+						  const std::shared_ptr<struct pingpong_dest> &remote_dest, int sgid_idx)
 {
 	// Initialize the QP state attributes
 	struct ibv_qp_attr qp_attr {
@@ -645,8 +642,8 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int ib_port, uint32_t my
 	}
 	// Change the QP to RTR state
 	if (ibv_modify_qp(ctx->qp, &qp_attr,
-			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU | IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
-				  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
+					  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU | IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
+						  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
 		std::cerr << "Failed to modify QP to RTR state" << std::endl;
 		return 1;
 	}
@@ -658,8 +655,8 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int ib_port, uint32_t my
 	qp_attr.sq_psn = my_psn;
 	qp_attr.max_rd_atomic = 1;
 	if (ibv_modify_qp(ctx->qp, &qp_attr,
-			  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_RETRY_CNT | IBV_QP_RNR_RETRY | IBV_QP_SQ_PSN |
-				  IBV_QP_MAX_QP_RD_ATOMIC)) {
+					  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_RETRY_CNT | IBV_QP_RNR_RETRY | IBV_QP_SQ_PSN |
+						  IBV_QP_MAX_QP_RD_ATOMIC)) {
 		std::cerr << "Failed to modify QP to RTS state" << std::endl;
 		return 1;
 	}
@@ -668,8 +665,8 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int ib_port, uint32_t my
 }
 
 static std::shared_ptr<struct pingpong_dest> pp_server_exch_dest(struct pingpong_context *ctx, int ib_port,
-								 enum ibv_mtu mtu, int port, int sl,
-								 const struct pingpong_dest *my_dest, int sgid_idx)
+																 enum ibv_mtu mtu, int port, int sl,
+																 const struct pingpong_dest *my_dest, int sgid_idx)
 {
 	// Convert the port to a string
 	std::string service;
@@ -764,13 +761,11 @@ static std::shared_ptr<struct pingpong_dest> pp_server_exch_dest(struct pingpong
 	gid_to_wire_gid(&my_dest->gid, wgid);
 	std::ostringstream oss;
 	oss << std::hex << std::nouppercase << std::setfill('0') << std::setw(4) << (my_dest->lid & 0xffff) << ':'
-	    << std::setw(6) << (my_dest->qpn & 0xffffff) << ':' << std::setw(6) << (my_dest->psn & 0xffffff) << ':'
-	    << wgid;
+		<< std::setw(6) << (my_dest->qpn & 0xffffff) << ':' << std::setw(6) << (my_dest->psn & 0xffffff) << ':' << wgid;
 	std::string send_msg = oss.str();
 	// Send the message to the client
-	if (rdma_practice::write_all(connfd, send_msg.c_str(), send_msg.size()) !=
-		    static_cast<ssize_t>(send_msg.size()) ||
-	    rdma_practice::read_all(connfd, msg.data(), sizeof("done")) != sizeof("done")) {
+	if (rdma_practice::write_all(connfd, send_msg.c_str(), send_msg.size()) != static_cast<ssize_t>(send_msg.size()) ||
+		rdma_practice::read_all(connfd, msg.data(), sizeof("done")) != sizeof("done")) {
 		std::cerr << "Failed to read/write remote address" << std::endl;
 		close(connfd);
 		return nullptr;
@@ -780,13 +775,13 @@ static std::shared_ptr<struct pingpong_dest> pp_server_exch_dest(struct pingpong
 }
 
 static inline int parse_single_wc(struct pingpong_context *ctx, size_t *scnt, size_t *rcnt, int *routs, size_t iters,
-				  uint64_t wr_id, enum ibv_wc_status status, uint64_t completion_timestamp,
-				  struct ts_params *ts)
+								  uint64_t wr_id, enum ibv_wc_status status, uint64_t completion_timestamp,
+								  struct ts_params *ts)
 {
 	// Check the work completion status
 	if (status != IBV_WC_SUCCESS) {
 		std::cerr << "Failed status " << ibv_wc_status_str(status) << " (" << status << ") for wr_id" << wr_id
-			  << std::endl;
+				  << std::endl;
 		return 1;
 	}
 	// Parse the work completion according to the work request ID
@@ -800,8 +795,8 @@ static inline int parse_single_wc(struct pingpong_context *ctx, size_t *scnt, si
 		if (--(*routs) <= 1) {
 			*routs += post_recv_wr(ctx, ctx->rx_depth - *routs);
 			if (*routs < ctx->rx_depth) {
-				std::cerr << "Failed to post expected number of receive work requests: " << *routs
-					  << "/" << ctx->rx_depth << std::endl;
+				std::cerr << "Failed to post expected number of receive work requests: " << *routs << "/"
+						  << ctx->rx_depth << std::endl;
 				return 1;
 			}
 		}
@@ -815,8 +810,8 @@ static inline int parse_single_wc(struct pingpong_context *ctx, size_t *scnt, si
 				if (completion_timestamp >= ts->comp_recv_prev_time) {
 					delta = static_cast<double>(completion_timestamp - ts->comp_recv_prev_time);
 				} else {
-					delta = static_cast<double>(ctx->completion_timestamp_mask -
-								    ts->comp_recv_prev_time + completion_timestamp + 1);
+					delta = static_cast<double>(ctx->completion_timestamp_mask - ts->comp_recv_prev_time +
+												completion_timestamp + 1);
 				}
 				// Update the timestamp statistics
 				ts->comp_recv_max_time_delta = std::max(ts->comp_recv_max_time_delta, delta);
@@ -1069,13 +1064,13 @@ int main(int argc, char **argv)
 		memset(&my_dest.gid, 0, sizeof(my_dest.gid));
 	}
 	// Get the QPN and set the PSN randomly
-	std::string lgid(33, '\0');
+	std::string lgid(INET6_ADDRSTRLEN, '\0');
 	my_dest.qpn = pp_ctx->qp->qp_num;
 	my_dest.psn = std::uniform_int_distribution<uint32_t>(0, 0xffffff)(rng);
 	inet_ntop(AF_INET6, &my_dest.gid, lgid.data(), lgid.size() - 1);
-	std::cout << "local address:  LID 0x" << std::hex << std::setw(4) << std::setfill('0') << my_dest.lid
-		  << ", QPN 0x" << std::setw(6) << my_dest.qpn << ", PSN 0x" << std::setw(6) << my_dest.psn << ", GID "
-		  << lgid << std::dec << std::setfill(' ') << std::endl;
+	std::cout << "local address:  LID 0x" << std::hex << std::setw(4) << std::setfill('0') << my_dest.lid << ", QPN 0x"
+			  << std::setw(6) << my_dest.qpn << ", PSN 0x" << std::setw(6) << my_dest.psn << ", GID " << lgid
+			  << std::dec << std::setfill(' ') << std::endl;
 
 	// Exchange remote destination by socket
 	std::shared_ptr<struct pingpong_dest> rem_dest;
@@ -1090,11 +1085,11 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	// Print the remote destination
-	std::string rgid(33, '\0');
+	std::string rgid(INET6_ADDRSTRLEN, '\0');
 	inet_ntop(AF_INET6, &rem_dest->gid, rgid.data(), rgid.size() - 1);
 	std::cout << "remote address:  LID 0x" << std::hex << std::setw(4) << std::setfill('0') << rem_dest->lid
-		  << ", QPN 0x" << std::setw(6) << rem_dest->qpn << ", PSN 0x" << std::setw(6) << rem_dest->psn
-		  << ", GID " << rgid << std::dec << std::setfill(' ') << std::endl;
+			  << ", QPN 0x" << std::setw(6) << rem_dest->qpn << ", PSN 0x" << std::setw(6) << rem_dest->psn << ", GID "
+			  << rgid << std::dec << std::setfill(' ') << std::endl;
 
 	// Change client QP to RTS state
 	if (!server_name.empty()) {
@@ -1174,8 +1169,8 @@ int main(int argc, char **argv)
 			}
 			// Parse the work completion
 			ret = parse_single_wc(pp_ctx, &scnt, &rcnt, &routs, iters, pp_ctx->cq_s.cq_ex->wr_id,
-					      pp_ctx->cq_s.cq_ex->status,
-					      ibv_wc_read_completion_wallclock_ns(pp_ctx->cq_s.cq_ex), &ts);
+								  pp_ctx->cq_s.cq_ex->status, ibv_wc_read_completion_wallclock_ns(pp_ctx->cq_s.cq_ex),
+								  &ts);
 			if (ret) {
 				ibv_end_poll(pp_ctx->cq_s.cq_ex);
 				return ret;
@@ -1184,8 +1179,8 @@ int main(int argc, char **argv)
 			ret = ibv_next_poll(pp_ctx->cq_s.cq_ex);
 			if (!ret) {
 				ret = parse_single_wc(pp_ctx, &scnt, &rcnt, &routs, iters, pp_ctx->cq_s.cq_ex->wr_id,
-						      pp_ctx->cq_s.cq_ex->status,
-						      ibv_wc_read_completion_wallclock_ns(pp_ctx->cq_s.cq_ex), &ts);
+									  pp_ctx->cq_s.cq_ex->status,
+									  ibv_wc_read_completion_wallclock_ns(pp_ctx->cq_s.cq_ex), &ts);
 			}
 			// End the poll
 			ibv_end_poll(pp_ctx->cq_s.cq_ex);
@@ -1206,8 +1201,7 @@ int main(int argc, char **argv)
 			} while (ne < 1);
 			// Parse the work completions
 			for (int i = 0; i < ne; ++i) {
-				ret = parse_single_wc(pp_ctx, &scnt, &rcnt, &routs, iters, wc[i].wr_id, wc[i].status, 0,
-						      &ts);
+				ret = parse_single_wc(pp_ctx, &scnt, &rcnt, &routs, iters, wc[i].wr_id, wc[i].status, 0, &ts);
 				if (ret) {
 					std::cerr << "Parse WC failed: " << ret << std::endl;
 					return 1;
@@ -1233,21 +1227,17 @@ int main(int argc, char **argv)
 		const double mb_per_sec = bytes / usec;
 		std::cout << std::fixed << std::setprecision(2);
 		std::cout << bytes << " bytes in " << seconds << " seconds = " << mb_per_sec << " MB/s" << std::endl;
-		std::cout << iters << " iters in " << seconds << " seconds = " << (usec / iters) << " us/iter"
-			  << std::endl;
+		std::cout << iters << " iters in " << seconds << " seconds = " << (usec / iters) << " us/iter" << std::endl;
 		if (use_ts && ts.comp_with_time_iters) {
 			std::cout << std::fixed << std::setprecision(4);
-			std::cout << "Max receive completion interval (us) = " << ts.comp_recv_max_time_delta / 1000.0
-				  << " us"
-				  << "\n";
-			std::cout << "Min receive completion interval (us) = " << ts.comp_recv_min_time_delta / 1000.0
-				  << " us"
-				  << "\n";
+			std::cout << "Max receive completion interval (us) = " << ts.comp_recv_max_time_delta / 1000.0 << " us"
+					  << "\n";
+			std::cout << "Min receive completion interval (us) = " << ts.comp_recv_min_time_delta / 1000.0 << " us"
+					  << "\n";
 			std::cout << "Average receive completion interval (us) = "
-				  << (static_cast<double>(ts.comp_recv_total_time_delta) / ts.comp_with_time_iters /
-				      1000.0)
-				  << " us"
-				  << "\n";
+					  << (static_cast<double>(ts.comp_recv_total_time_delta) / ts.comp_with_time_iters / 1000.0)
+					  << " us"
+					  << "\n";
 		}
 		std::cout.unsetf(std::ios::floatfield);
 		// Valid receive data from client
@@ -1263,8 +1253,8 @@ int main(int argc, char **argv)
 				const unsigned char expect = static_cast<unsigned char>((i / page_size) % 128);
 				if (got != expect) {
 					std::cout << "Invalid data at offset " << i << " (page " << i / page_size
-						  << "): " << static_cast<unsigned int>(got)
-						  << " != " << static_cast<unsigned int>(expect) << std::endl;
+							  << "): " << static_cast<unsigned int>(got) << " != " << static_cast<unsigned int>(expect)
+							  << std::endl;
 				}
 			}
 		}
